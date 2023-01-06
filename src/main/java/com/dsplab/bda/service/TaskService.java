@@ -14,4 +14,12 @@ import com.dsplab.bda.domain.entity.Task;
 public interface TaskService extends IService<Task> {
 
     ResponseResult getTaskInfoById(Long id);
+
+    ResponseResult taskList(Integer pageNum, Integer pageSize);
+
+    ResponseResult addTask(Task task);
+
+    ResponseResult updateTask(Task task);
+
+    ResponseResult deleteTask(Long id);
 }

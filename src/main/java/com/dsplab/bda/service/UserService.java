@@ -1,6 +1,7 @@
 package com.dsplab.bda.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.entity.User;
 
 
@@ -12,4 +13,6 @@ import com.dsplab.bda.domain.entity.User;
  */
 public interface UserService extends IService<User> {
 
+    ResponseResult register(User user);
+    Boolean isAdmin();
 }

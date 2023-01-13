@@ -14,5 +14,16 @@ import com.dsplab.bda.domain.entity.User;
 public interface UserService extends IService<User> {
 
     ResponseResult register(User user);
+
     Boolean isAdmin();
+
+    ResponseResult userInfo();
+
+    ResponseResult updateUserInfo(User user);
+
+    ResponseResult userList(Integer pageNum, Integer pageSize);
+
+    ResponseResult modifyPermission(User user);
+
+    ResponseResult banUser(User user);
 }

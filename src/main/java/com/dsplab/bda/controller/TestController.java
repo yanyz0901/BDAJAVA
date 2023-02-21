@@ -13,6 +13,6 @@ public class TestController {
     @SystemLog
     @ApiOperation("测试api")
     public String testConnection(){
-        return "pong!";
+        return "测试成功!";
     }
 }

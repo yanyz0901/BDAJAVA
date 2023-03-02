@@ -23,7 +23,7 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendMail() {
         String subject = "任务执行结果";
-        String text = "执行成功，结果已保存到数据库";
+        String text = "执行成功，结果已保存";
         MailVo mailVo = new MailVo(this.getMailSendTo(),subject,text);
         try{
             checkMail(mailVo);

@@ -1,11 +1,15 @@
 package com.dsplab.bda.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dsplab.bda.annotation.SystemLog;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.AddResultDto;
 import com.dsplab.bda.domain.dto.AddTaskDto;
 import com.dsplab.bda.domain.dto.UpdateTaskDto;
 import com.dsplab.bda.domain.entity.Task;
+import com.dsplab.bda.domain.vo.MailVo;
 import com.dsplab.bda.service.TaskService;
+import com.dsplab.bda.service.impl.MailServiceImpl;
 import com.dsplab.bda.utils.BeanCopyUtils;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 public class TaskController {
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private MailServiceImpl mailService;
 
     @GetMapping("/{id}")
     @SystemLog
@@ -59,5 +66,15 @@ public class TaskController {
     @ApiImplicitParam(name = "id", value = "任务id")
     public ResponseResult deleteTask(@PathVariable Long id){
         return taskService.deleteTask(id);
+    }
+
+    @PostMapping("/result")
+    @SystemLog
+    @ApiOperation(value = "保存任务结果", notes = "不需要携带token")
+    public ResponseResult addResult(@RequestBody JSONObject jsonObject){
+        AddResultDto addResultDto = new AddResultDto(jsonObject.getLongValue("task_id"),jsonObject.get("result").toString());
+        Task task = BeanCopyUtils.copyBean(addResultDto, Task.class);
+        mailService.sendMail(); //发送邮件
+        return taskService.updateTaskResult(task);
     }
 }

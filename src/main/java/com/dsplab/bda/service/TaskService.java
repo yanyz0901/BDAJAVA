@@ -21,5 +21,7 @@ public interface TaskService extends IService<Task> {
 
     ResponseResult updateTask(Task task);
 
+    ResponseResult updateTaskResult(Task task);
+
     ResponseResult deleteTask(Long id);
 }

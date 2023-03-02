@@ -137,6 +137,36 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
+    public ResponseResult updateTaskResult(Task task) {
+        //参数非空校验
+        if (Objects.isNull(task.getTaskId())) {
+            log.error("not input taskId");
+            return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
+        }
+
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, task.getTaskId());
+
+        Task t = getOne(wrapper);
+        if(Objects.isNull(t)){
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户对应任务列表中没有该条数据");
+        }
+        //算法端直接调用不需要登录检查
+        //查询该用户是否是管理员，若否则加入过滤条件
+//        if(!userService.isAdmin()){
+//            wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
+//        }
+
+        if (update(task, wrapper)) {
+            log.info("update database success!");
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        } else {
+            log.error("update database failed!");
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
+        }
+    }
+
+    @Override
     public ResponseResult deleteTask(Long id) {
         //参数非空校验
         if(Objects.isNull(id) || id <= 0){
@@ -164,4 +194,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
         }
     }
+
+
 }

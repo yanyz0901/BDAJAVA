@@ -175,11 +175,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户列表中找不到该用户");
         }
         //算法端直接调用不需要登录检查
-        //查询该用户是否是管理员，若否则加入过滤条件
-//        if(!userService.isAdmin()){
-//            wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
-//        }
-
         if (update(task, wrapper)) {
             log.info("update database success!");
             mailService.sendMail(t1.getEmail()); //发送邮件

@@ -24,4 +24,5 @@ public class TaskVo {
     private String configInfo;
     //任务结果
     private String result;
+
 }

@@ -41,6 +41,11 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MailServiceImpl mailService;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public ResponseResult getTaskInfoById(Long id) {
@@ -145,6 +150,47 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
+    public ResponseResult updateTaskResult(Task task) {
+        //参数非空校验
+        if (Objects.isNull(task.getTaskId())) {
+            log.error("not input taskId");
+            return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
+        }
+
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, task.getTaskId());
+
+        Task t = getOne(wrapper);
+
+        //根据userId找到User表中对应用户
+        LambdaQueryWrapper<User> wrapper1 = new LambdaQueryWrapper<>();
+        wrapper1.eq(User::getId, t.getUserId());
+
+        User t1 = userMapper.selectOne(wrapper1);
+
+        if(Objects.isNull(t)){
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户对应任务列表中没有该条数据");
+        }
+        if(Objects.isNull(t1)){
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户列表中找不到该用户");
+        }
+        //算法端直接调用不需要登录检查
+        //查询该用户是否是管理员，若否则加入过滤条件
+//        if(!userService.isAdmin()){
+//            wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
+//        }
+
+        if (update(task, wrapper)) {
+            log.info("update database success!");
+            mailService.sendMail(t1.getEmail()); //发送邮件
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        } else {
+            log.error("update database failed!");
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
+        }
+    }
+
+    @Override
     public ResponseResult deleteTask(Long id) {
         //参数非空校验
         if(Objects.isNull(id) || id <= 0){
@@ -172,6 +218,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
         }
     }
+
     //开始任务api
     public ResponseResult startTask(Integer id) {
         //参数非空校验

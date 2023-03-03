@@ -3,6 +3,7 @@ package com.dsplab.bda.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.entity.Task;
+import com.dsplab.bda.enums.AppHttpCodeEnum;
 
 
 /**
@@ -24,4 +25,7 @@ public interface TaskService extends IService<Task> {
     ResponseResult updateTaskResult(Task task);
 
     ResponseResult deleteTask(Long id);
+
+
+    ResponseResult startTask(Integer id) ;
 }

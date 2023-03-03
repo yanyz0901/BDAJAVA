@@ -72,5 +72,12 @@ public class TaskController {
         AddResultDto addResultDto = new AddResultDto(jsonObject.getLongValue("task_id"),jsonObject.get("result").toString());
         Task task = BeanCopyUtils.copyBean(addResultDto, Task.class);
         return taskService.updateTaskResult(task);
+        
+    @GetMapping("/startTask/{id}")
+    @SystemLog
+    @ApiOperation(value = "根据任务id开始任务", notes = "需要携带token")
+    @ApiImplicitParam(name = "id", value = "任务id")
+    public ResponseResult startTask(@PathVariable Integer id) {
+        return taskService.startTask(id);
     }
 }

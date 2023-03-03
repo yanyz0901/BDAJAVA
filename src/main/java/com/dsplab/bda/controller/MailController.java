@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("mail")
+@RequestMapping("/mail")
 public class MailController {
     @Autowired
     private MailServiceImpl mailService;
 
 
-    @PostMapping("send")
+    @PostMapping("/send")
     public MailVo sendMail(MailVo mailVo){
         return mailService.sendMail(mailVo);
     }

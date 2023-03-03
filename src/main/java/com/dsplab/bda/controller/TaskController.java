@@ -22,9 +22,6 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
 
-    @Autowired
-    private MailServiceImpl mailService;
-
     @GetMapping("/{id}")
     @SystemLog
     @ApiOperation(value = "根据任务id获取任务信息", notes = "需要携带token")
@@ -74,7 +71,6 @@ public class TaskController {
     public ResponseResult addResult(@RequestBody JSONObject jsonObject){
         AddResultDto addResultDto = new AddResultDto(jsonObject.getLongValue("task_id"),jsonObject.get("result").toString());
         Task task = BeanCopyUtils.copyBean(addResultDto, Task.class);
-        mailService.sendMail(); //发送邮件
         return taskService.updateTaskResult(task);
     }
 }

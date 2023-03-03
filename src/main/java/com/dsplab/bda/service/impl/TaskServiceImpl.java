@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.entity.Task;
+import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.PageVo;
 import com.dsplab.bda.domain.vo.TaskVo;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
 import com.dsplab.bda.mapper.TaskMapper;
+import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.TaskService;
 import com.dsplab.bda.service.UserService;
 import com.dsplab.bda.utils.BeanCopyUtils;
@@ -33,6 +35,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MailServiceImpl mailService;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public ResponseResult getTaskInfoById(Long id) {
@@ -148,8 +156,18 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         wrapper.eq(Task::getTaskId, task.getTaskId());
 
         Task t = getOne(wrapper);
+
+        //根据userid找到User表中对应用户
+        LambdaQueryWrapper<User> wrapper1 = new LambdaQueryWrapper<>();
+        wrapper1.eq(User::getId, t.getUserId());
+
+        User t1 = userMapper.selectOne(wrapper1);
+
         if(Objects.isNull(t)){
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户对应任务列表中没有该条数据");
+        }
+        if(Objects.isNull(t1)){
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户列表中找不到该用户");
         }
         //算法端直接调用不需要登录检查
         //查询该用户是否是管理员，若否则加入过滤条件
@@ -159,6 +177,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
         if (update(task, wrapper)) {
             log.info("update database success!");
+            mailService.sendMail(t1.getEmail()); //发送邮件
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         } else {
             log.error("update database failed!");

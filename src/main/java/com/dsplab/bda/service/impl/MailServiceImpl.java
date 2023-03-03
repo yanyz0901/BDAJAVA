@@ -21,10 +21,10 @@ public class MailServiceImpl implements MailService {
     private JavaMailSenderImpl mailSender;
 
     @Override
-    public void sendMail() {
+    public void sendMail(String sendToAddress) {
         String subject = "任务执行结果";
         String text = "执行成功，结果已保存";
-        MailVo mailVo = new MailVo(this.getMailSendTo(),subject,text);
+        MailVo mailVo = new MailVo(sendToAddress,subject,text);
         try{
             checkMail(mailVo);
             createMail(mailVo);

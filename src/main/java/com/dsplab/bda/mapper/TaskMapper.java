@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dsplab.bda.domain.entity.Task;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 
 /**
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
  * @author makejava
  * @since 2023-01-06 11:28:57
  */
-@Component
 public interface TaskMapper extends BaseMapper<Task> {
 
 }

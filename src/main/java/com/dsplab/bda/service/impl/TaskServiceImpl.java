@@ -1,5 +1,6 @@
 package com.dsplab.bda.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.injector.methods.SelectOne;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -39,9 +40,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TaskMapper taskMapper;
 
 
     @Override
@@ -175,7 +173,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }
     }
     //开始任务api
-    public ResponseResult startTask(Integer id) throws Exception{
+    public ResponseResult startTask(Integer id) {
         //参数非空校验
         if(Objects.isNull(id) || id <= 0){
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -183,24 +181,28 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         //根据输入的任务id找到对应任务
         LambdaQueryWrapper<Task> wrappertask = new LambdaQueryWrapper<>();
         wrappertask.eq(Task::getTaskId, id);
-        Task task = taskMapper.selectOne(wrappertask);
+        Task task = getOne(wrappertask);
         //判断的任务中user_id，与当前的用户的id是否一致，不一致则报错
         if(task.getUserId()!=SecurityUtils.getUserId()){
             log.info("the user_id in the task are not match the now user");
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前用户id与该任务中的用户id不符");
         }
-        //根据输入的任务id来实现任务
-        String task_id = Long.toString(id);
         //根据id从数据库中获取任务信息
-        String Taskinfo = infoGetUtils.get("http://localhost:8888/task/startTask"+"{"+task_id+"}");
+        String Taskinfo = task.getConfigInfo();
         //将任务信息从json转为StartTaskVo格式，然后在里面加入task_id，再重新转为json格式
         StartTaskVo taskVo = JsonToObjUtils.jsonConvert(Taskinfo);
-        taskVo.setTask_id(id.intValue());
+        taskVo.setTask_id(id);
         String Taskinfo2 = JsonToObjUtils.objectTojson(taskVo);
         //发送给算法api
         String result = infoPostUtils.sendPost("http://localhost:9999/task/moooseeker/",Taskinfo2);
+        JSONObject object= JSONObject.parseObject(result);
+        //获取算法返回的响应信息，同时检验响应码，如果为200，则返回成功提示
+        if(object.getJSONObject("code").toString()!="200"){
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        }
+        //如果响应码不为200，则控制台输出
         System.out.println("result=="+result);//返回算法的响应
+        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
 
-        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }

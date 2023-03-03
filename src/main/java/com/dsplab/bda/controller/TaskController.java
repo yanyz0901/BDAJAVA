@@ -60,4 +60,11 @@ public class TaskController {
     public ResponseResult deleteTask(@PathVariable Long id){
         return taskService.deleteTask(id);
     }
+    @GetMapping("/startTask/{id}")
+    @SystemLog
+    @ApiOperation(value = "根据任务id开始任务", notes = "需要携带token")
+    @ApiImplicitParam(name = "id", value = "任务id")
+    public ResponseResult startTask(@PathVariable Integer id) {
+        return taskService.startTask(id);
+    }
 }

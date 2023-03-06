@@ -3,13 +3,19 @@ server:
 
 spring:
   mail:
-    default-encoding: UTF-8
-    host: smtp.qq.com #SMTP服务器地址
-    username: 978325585
-    password: yxpgnzjhaijtbajc
-    properties:
-      from: 978325585@qq.com
+#    default-encoding: UTF-8
+#    host: smtp.qq.com #SMTP服务器地址
+#    username: 978325585
+#    password: yxpgnzjhaijtbajc
+#    properties:
+#      from: 978325585@qq.com
       #to: 3019234427@tju.edu.cn 测试用
+    default-encoding: UTF-8
+    host: smtp.163.com #SMTP服务器地址
+    username: BDA_DSP
+    password: UYXEIOVFIUYHAAMX
+    properties:
+      from: BDA_DSP@163.com
   datasource:
     url: jdbc:mysql://localhost:3306/bda?characterEncoding=utf-8&serverTimezone=UTC
     username: root

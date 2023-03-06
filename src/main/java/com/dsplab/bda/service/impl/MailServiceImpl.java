@@ -22,8 +22,8 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public void sendMail(String sendToAddress) {
-        String subject = "任务执行结果";
-        String text = "执行成功，结果已保存";
+        String subject = "BDA—任务执行完成通知";
+        String text = "您的任务执行完成，请登录BDA网站查看";
         MailVo mailVo = new MailVo(sendToAddress,subject,text);
         try{
             checkMail(mailVo);

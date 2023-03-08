@@ -3,19 +3,13 @@ server:
 
 spring:
   mail:
-#    default-encoding: UTF-8
-#    host: smtp.qq.com #SMTP服务器地址
-#    username: 978325585
-#    password: yxpgnzjhaijtbajc
-#    properties:
-#      from: 978325585@qq.com
-      #to: 3019234427@tju.edu.cn 测试用
     default-encoding: UTF-8
     host: smtp.163.com #SMTP服务器地址
     username: BDA_DSP
     password: UYXEIOVFIUYHAAMX
     properties:
       from: BDA_DSP@163.com
+
   datasource:
     url: jdbc:mysql://localhost:3306/bda?characterEncoding=utf-8&serverTimezone=UTC
     username: root
@@ -36,3 +30,8 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       id-type: auto
+
+restTemplate:
+  parameter:
+    connectTimeout: 6000
+    readTimeout: 6000

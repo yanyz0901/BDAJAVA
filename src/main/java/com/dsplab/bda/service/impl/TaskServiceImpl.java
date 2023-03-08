@@ -1,11 +1,12 @@
 package com.dsplab.bda.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.injector.methods.SelectOne;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
@@ -18,12 +19,10 @@ import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.TaskService;
 import com.dsplab.bda.service.UserService;
 import com.dsplab.bda.utils.*;
-import io.lettuce.core.output.ScanOutput;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +45,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RestTemplateUtils restTemplateUtils;
 
     @Override
     public ResponseResult getTaskInfoById(Long id) {
@@ -159,25 +161,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Task::getTaskId, task.getTaskId());
-
         Task t = getOne(wrapper);
+        if(Objects.isNull(t)){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(),"任务列表中没有该条数据");
+        }
 
         //根据userId找到User表中对应用户
         LambdaQueryWrapper<User> wrapper1 = new LambdaQueryWrapper<>();
         wrapper1.eq(User::getId, t.getUserId());
-
-        User t1 = userMapper.selectOne(wrapper1);
-
-        if(Objects.isNull(t)){
-            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户对应任务列表中没有该条数据");
+        User user = userMapper.selectOne(wrapper1);
+        if(Objects.isNull(user)){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(),"找不到该用户");
         }
-        if(Objects.isNull(t1)){
-            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS.getCode(),"用户列表中找不到该用户");
-        }
+        task.setCompleteTime(new Date());
         //算法端直接调用不需要登录检查
         if (update(task, wrapper)) {
             log.info("update database success!");
-            mailService.sendMail(t1.getEmail()); //发送邮件
+            mailService.sendMail(user.getEmail()); //发送邮件
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         } else {
             log.error("update database failed!");
@@ -221,30 +221,37 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
         }
         //根据输入的任务id找到对应任务
-        LambdaQueryWrapper<Task> wrappertask = new LambdaQueryWrapper<>();
-        wrappertask.eq(Task::getTaskId, id);
-        Task task = getOne(wrappertask);
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, id);
+        Task task = getOne(wrapper);
+        // 判断task是否存在
+        if(Objects.isNull(task)){
+            log.info("do not has the task");
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前任务不存在");
+        }
         //判断的任务中user_id，与当前的用户的id是否一致，不一致则报错
-        if(task.getUserId()!=SecurityUtils.getUserId()){
+        if(!task.getUserId().equals(SecurityUtils.getUserId())){
             log.info("the user_id in the task are not match the now user");
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前用户id与该任务中的用户id不符");
         }
         //根据id从数据库中获取任务信息
-        String Taskinfo = task.getConfigInfo();
+        String TaskInfo = task.getConfigInfo();
         //将任务信息从json转为StartTaskVo格式，然后在里面加入task_id，再重新转为json格式
-        StartTaskVo taskVo = JsonToObjUtils.jsonConvert(Taskinfo);
-        taskVo.setTask_id(id);
-        String Taskinfo2 = JsonToObjUtils.objectTojson(taskVo);
+        StartTaskVo taskVo = JSON.parseObject(TaskInfo,StartTaskVo.class);
+        taskVo.setTaskId(id.toString());
+        String json = JSON.toJSONString(taskVo);
         //发送给算法api
-        String result = infoPostUtils.sendPost("http://localhost:9999/task/moooseeker/",Taskinfo2);
-        JSONObject object= JSONObject.parseObject(result);
-        //获取算法返回的响应信息，同时检验响应码，如果为200，则返回成功提示
-        if(object.getJSONObject("code").toString()!="200"){
+        JSONObject result= restTemplateUtils.doPost(SystemConstants.mooSeekerTaskUrl,json);
+        log.info(result.toJSONString());
+
+        if("200".equals(result.get("code").toString())){
+            // 更新任务开始时间
+            task.setStartTime(new Date());
+            update(task, wrapper);
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
         //如果响应码不为200，则控制台输出
-        System.out.println("result=="+result);//返回算法的响应
+        log.error("result=="+result.toJSONString());//返回算法的响应
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
-
     }
 }

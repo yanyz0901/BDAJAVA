@@ -36,16 +36,14 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public MailVo sendMail(MailVo mailVo) {
+    public void sendMail(MailVo mailVo) {
         try{
             checkMail(mailVo);
             createMail(mailVo);
-            return saveMail(mailVo);
         }catch (Exception e){
             logger.error("发送邮件失败",e);
             mailVo.setStatus("fail");
             mailVo.setError(e.getMessage());
-            return mailVo;
         }
     }
 

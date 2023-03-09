@@ -17,21 +17,47 @@ public class RestTemplateUtils {
     /**
      * 发送post请求
      * @param url 请求url
-     * @param param 请求体参数
-     * @return 响应
+     * @param body 请求体
+     * @return json格式响应体
      */
-    public JSONObject doPost(String url, String param) {
-        return restTemplate.postForObject(url, param, JSONObject.class);
+    public JSONObject doPostForObject(String url, String body) {
+        return restTemplate.postForObject(url, body, JSONObject.class);
+    }
+
+    /**
+     * 发送post请求
+     * @param url 请求url
+     * @param body 请求体
+     * @return 响应全部信息
+     */
+    public ResponseEntity<Object> doPostForEntity(String url, String body) {
+        return  restTemplate.postForEntity(url, body, Object.class);
     }
 
     /**
      * 发送get请求
      * @param url 请求url
-     * @param map 请求字段
-     * @return 响应
+     * @param urlValues 请求字段,map集合
+     *                  也可在url上添加参数
+     * @return 响应全部信息
      */
-    public ResponseEntity<String> doGet(String url, Map<String, String> map) {
-        return restTemplate.getForEntity(url, String.class, map);
+    public ResponseEntity<Object> doGetForEntity(String url, Map<String, ?> urlValues) {
+        if(urlValues == null){
+            return restTemplate.getForEntity(url, Object.class);
+        }
+        return restTemplate.getForEntity(url, Object.class, urlValues);
     }
 
+    /**
+     * 发送get请求
+     * @param url 请求url
+     * @param urlValues 请求字段,map集合
+     * @return json格式响应体
+     */
+    public JSONObject doGetForObject(String url, Map<String, ?> urlValues){
+        if(urlValues == null){
+            return restTemplate.getForObject(url, JSONObject.class);
+        }
+        return restTemplate.getForObject(url, JSONObject.class, urlValues);
+    }
 }

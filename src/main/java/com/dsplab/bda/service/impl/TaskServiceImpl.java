@@ -10,6 +10,7 @@ import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
+import com.dsplab.bda.domain.vo.MailVo;
 import com.dsplab.bda.domain.vo.PageVo;
 import com.dsplab.bda.domain.vo.StartTaskVo;
 import com.dsplab.bda.domain.vo.TaskVo;
@@ -97,7 +98,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         //封装vo
         List<TaskVo> taskVos = BeanCopyUtils.copyBeanList(taskList, TaskVo.class);
         for (TaskVo taskVo : taskVos) {
-            taskVo.setUserName(userService.getById(SecurityUtils.getUserId()).getUserName());
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(User::getId,taskVo.getUserId());
+            User user = userMapper.selectOne(queryWrapper);
+            taskVo.setUserName(user.getUserName());
         }
         PageVo pageVo = new PageVo(taskVos, page.getTotal());
         return ResponseResult.okResult(pageVo);
@@ -177,7 +181,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         //算法端直接调用不需要登录检查
         if (update(task, wrapper)) {
             log.info("update database success!");
-            mailService.sendMail(user.getEmail()); //发送邮件
+            String text = user.getUserName()+"您好，您参数配置为"+t.getConfigInfo()+"的任务执行结束，执行结果为"
+                    +task.getResult()+"，任务详情请访问BDA网址。";
+            MailVo mailVo = new MailVo(user.getEmail(), SystemConstants.emailName, text);
+            mailService.sendMail(mailVo); //发送邮件
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         } else {
             log.error("update database failed!");
@@ -241,7 +248,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         taskVo.setTaskId(id.toString());
         String json = JSON.toJSONString(taskVo);
         //发送给算法api
-        JSONObject result= restTemplateUtils.doPost(SystemConstants.mooSeekerTaskUrl,json);
+        JSONObject result= restTemplateUtils.doPostForObject(SystemConstants.mooSeekerTaskUrl,json);
         log.info(result.toJSONString());
 
         if("200".equals(result.get("code").toString())){

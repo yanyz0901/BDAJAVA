@@ -82,4 +82,13 @@ public class TaskController {
     public ResponseResult startTask(@PathVariable Integer id) {
         return taskService.startTask(id);
     }
+
+    @GetMapping("/getResultById/{id}")
+    @SystemLog
+    @ApiOperation(value = "根据任务id获取任务结果", notes = "需要携带token")
+    @ApiImplicitParam(name = "id", value = "任务id")
+    public ResponseResult getResultById(@PathVariable Integer id){
+        return taskService.getTaskResult(id);
+
+    }
 }

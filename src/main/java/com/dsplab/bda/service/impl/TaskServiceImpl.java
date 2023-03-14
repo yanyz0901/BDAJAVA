@@ -24,6 +24,7 @@ import com.dsplab.bda.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -265,5 +266,32 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         //如果响应码不为200，则控制台输出
         log.error(result.toJSONString());//返回算法的响应
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
+    }
+
+    @Override
+    public ResponseResult getTaskResult(Integer id) {
+        //参数非空校验
+        if (Objects.isNull(id) || id <= 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
+        }
+
+        //根据taskId查询数据库
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, id);
+
+        //查询该用户是否是管理员，若否则加入过滤条件
+        if(!userService.isAdmin()){
+            wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
+        }
+        Task task = getOne(wrapper);
+        if(Objects.isNull(task)){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "用户任务列表里没有该数据！");
+        } else if(!TaskStatusEnum.COMPLETED.getStatusCode().equals(task.getStatus())){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "任务未执行完成");
+        } else if(StringUtils.hasText(task.getResult())){
+            Object o = JSON.parseObject(task.getResult(), Object.class);
+            return ResponseResult.okResult(o);
+        }
+        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
     }
 }

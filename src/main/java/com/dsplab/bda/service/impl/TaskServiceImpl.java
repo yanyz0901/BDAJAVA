@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.TaskListDto;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.MailVo;
@@ -81,7 +82,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
-    public ResponseResult taskList(Integer pageNum, Integer pageSize) {
+    public ResponseResult taskList(Integer pageNum, Integer pageSize, TaskListDto taskListDto) {
         //参数非空校验
         if (Objects.isNull(pageNum) || Objects.isNull(pageSize)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -92,7 +93,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if(!userService.isAdmin()){
             wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
         }
-
+        //条件查询
+        wrapper.eq(StringUtils.hasText(taskListDto.getStatus()), Task::getStatus, TaskStatusEnum.getByMsg(taskListDto.getStatus()));
+        wrapper.eq(StringUtils.hasText(taskListDto.getTaskType()), Task::getTaskType, taskListDto.getTaskType());
+        wrapper.eq(Objects.nonNull(taskListDto.getTaskId()), Task::getTaskId, taskListDto.getTaskId());
+        if(StringUtils.hasText(taskListDto.getUserName())){
+            User userByName = userService.getUserByName(taskListDto.getUserName());
+            Long userId = (userByName == null? 0L:userByName.getId());
+            wrapper.eq(Task::getUserId, userId);
+        }
         //分页查询
         Page<Task> page = new Page<>(pageNum, pageSize);
         page(page,wrapper);

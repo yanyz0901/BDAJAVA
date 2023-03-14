@@ -11,7 +11,7 @@ spring:
       from: BDA_DSP@163.com
 
   datasource:
-    url: jdbc:mysql://localhost:3306/bda?characterEncoding=utf-8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/bda?characterEncoding=utf-8&serverTimezone=UTC&useSSL=true
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver

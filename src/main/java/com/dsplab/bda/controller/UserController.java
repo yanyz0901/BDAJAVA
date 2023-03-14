@@ -51,8 +51,8 @@ public class UserController {
             @ApiImplicitParam(name = "pageNum", value = "页号"),
             @ApiImplicitParam(name = "pageSize", value = "页大小")
     })
-    public ResponseResult userList(Integer pageNum,Integer pageSize){
-        return userService.userList(pageNum, pageSize);
+    public ResponseResult userList(Integer pageNum,Integer pageSize, UserListDto userListDto){
+        return userService.userList(pageNum, pageSize, userListDto);
     }
 
     @PostMapping("/adminPermission")

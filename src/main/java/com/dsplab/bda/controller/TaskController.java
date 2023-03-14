@@ -5,11 +5,10 @@ import com.dsplab.bda.annotation.SystemLog;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.dto.AddResultDto;
 import com.dsplab.bda.domain.dto.AddTaskDto;
+import com.dsplab.bda.domain.dto.TaskListDto;
 import com.dsplab.bda.domain.dto.UpdateTaskDto;
 import com.dsplab.bda.domain.entity.Task;
-import com.dsplab.bda.domain.vo.MailVo;
 import com.dsplab.bda.service.TaskService;
-import com.dsplab.bda.service.impl.MailServiceImpl;
 import com.dsplab.bda.utils.BeanCopyUtils;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +36,8 @@ public class TaskController {
             @ApiImplicitParam(name = "pageNum", value = "页号"),
             @ApiImplicitParam(name = "pageSize", value = "页大小")
     })
-    public ResponseResult taskList(Integer pageNum,Integer pageSize){
-        return taskService.taskList(pageNum,pageSize);
+    public ResponseResult taskList(Integer pageNum,Integer pageSize, TaskListDto taskListDto){
+        return taskService.taskList(pageNum, pageSize, taskListDto);
     }
 
     @PostMapping("/addTask/{type}")
@@ -89,6 +88,5 @@ public class TaskController {
     @ApiImplicitParam(name = "id", value = "任务id")
     public ResponseResult getResultById(@PathVariable Integer id){
         return taskService.getTaskResult(id);
-
     }
 }

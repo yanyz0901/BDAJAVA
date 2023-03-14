@@ -2,6 +2,7 @@ package com.dsplab.bda.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.UserListDto;
 import com.dsplab.bda.domain.entity.User;
 
 
@@ -21,9 +22,11 @@ public interface UserService extends IService<User> {
 
     ResponseResult updateUserInfo(User user);
 
-    ResponseResult userList(Integer pageNum, Integer pageSize);
+    ResponseResult userList(Integer pageNum, Integer pageSize, UserListDto userListDto);
 
     ResponseResult modifyPermission(User user);
 
     ResponseResult banUser(User user);
+
+    User getUserByName(String name);
 }

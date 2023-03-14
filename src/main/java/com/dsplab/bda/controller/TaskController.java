@@ -41,11 +41,12 @@ public class TaskController {
         return taskService.taskList(pageNum,pageSize);
     }
 
-    @PostMapping("/addTask")
+    @PostMapping("/addTask/{type}")
     @SystemLog
     @ApiOperation(value = "新增任务", notes = "需要携带token")
-    public ResponseResult addTask(@RequestBody AddTaskDto addTaskDto){
+    public ResponseResult addTask(@RequestBody AddTaskDto addTaskDto, @PathVariable String type){
         Task task = BeanCopyUtils.copyBean(addTaskDto, Task.class);
+        task.setTaskType(type);
         return taskService.addTask(task);
     }
 

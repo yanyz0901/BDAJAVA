@@ -15,6 +15,7 @@ import com.dsplab.bda.domain.vo.PageVo;
 import com.dsplab.bda.domain.vo.StartTaskVo;
 import com.dsplab.bda.domain.vo.TaskVo;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
+import com.dsplab.bda.enums.TaskStatusEnum;
 import com.dsplab.bda.mapper.TaskMapper;
 import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.TaskService;
@@ -70,6 +71,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Task task = getOne(wrapper);
         TaskVo taskVo = BeanCopyUtils.copyBean(task, TaskVo.class);
         taskVo.setUserName(userService.getById(SecurityUtils.getUserId()).getUserName());
+        taskVo.setStatus(TaskStatusEnum.getByCode(task.getStatus()));
 
         if (Objects.nonNull(task)) return ResponseResult.okResult(taskVo);
         else {
@@ -102,6 +104,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             queryWrapper.eq(User::getId,taskVo.getUserId());
             User user = userMapper.selectOne(queryWrapper);
             taskVo.setUserName(user.getUserName());
+            taskVo.setStatus(TaskStatusEnum.getByCode(taskVo.getStatus()));
         }
         PageVo pageVo = new PageVo(taskVos, page.getTotal());
         return ResponseResult.okResult(pageVo);
@@ -178,12 +181,13 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(),"找不到该用户");
         }
         task.setCompleteTime(new Date());
+        task.setStatus(TaskStatusEnum.COMPLETED.getStatusCode());
         //算法端直接调用不需要登录检查
         if (update(task, wrapper)) {
             log.info("update database success!");
             String text = user.getUserName()+"您好，您参数配置为"+t.getConfigInfo()+"的任务执行结束，执行结果为"
                     +task.getResult()+"，任务详情请访问BDA网址。";
-            MailVo mailVo = new MailVo(user.getEmail(), SystemConstants.emailName, text);
+            MailVo mailVo = new MailVo(user.getEmail(), SystemConstants.EMAIL_NAME, text);
             mailService.sendMail(mailVo); //发送邮件
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         } else {
@@ -248,17 +252,18 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         taskVo.setTaskId(id.toString());
         String json = JSON.toJSONString(taskVo);
         //发送给算法api
-        JSONObject result= restTemplateUtils.doPostForObject(SystemConstants.mooSeekerTaskUrl,json);
+        JSONObject result= restTemplateUtils.doPostForObject(SystemConstants.MOOSEEKER_TASK_URL,json);
         log.info(result.toJSONString());
 
         if("200".equals(result.get("code").toString())){
             // 更新任务开始时间
             task.setStartTime(new Date());
+            task.setStatus(TaskStatusEnum.STARTING.getStatusCode());
             update(task, wrapper);
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
         //如果响应码不为200，则控制台输出
-        log.error("result=="+result.toJSONString());//返回算法的响应
+        log.error(result.toJSONString());//返回算法的响应
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
     }
 }

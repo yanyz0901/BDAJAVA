@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.UserListDto;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.PageVo;
 import com.dsplab.bda.domain.vo.UserVo;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
+import com.dsplab.bda.enums.UserStatusEnum;
+import com.dsplab.bda.enums.UserTypeEnum;
 import com.dsplab.bda.exception.SystemException;
 import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.UserService;
@@ -122,7 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResponseResult userList(Integer pageNum, Integer pageSize) {
+    public ResponseResult userList(Integer pageNum, Integer pageSize, UserListDto userListDto) {
         //判断用户是否为管理员
         if(!isAdmin()){
             return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
@@ -131,9 +134,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (Objects.isNull(pageNum) || Objects.isNull(pageSize)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
         }
-        //分页查询
+        //条件查询
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getStatus,"0");
+        wrapper.eq(StringUtils.hasText(userListDto.getUserName()), User::getUserName, userListDto.getUserName());
+        wrapper.eq(StringUtils.hasText(userListDto.getStatus()), User::getStatus, UserStatusEnum.getByMsg(userListDto.getStatus()));
+        wrapper.eq(StringUtils.hasText(userListDto.getType()), User::getType, UserTypeEnum.getByMsg(userListDto.getType()));
+        wrapper.eq(Objects.nonNull(userListDto.getId()), User::getId, userListDto.getId());
+
         Page<User> page = new Page<>(pageNum, pageSize);
         page(page,wrapper);
         List<User> userList = page.getRecords();
@@ -181,6 +188,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //更新数据库
         updateById(user);
         return ResponseResult.okResult();
+    }
+
+    @Override
+    public User getUserByName(String name) {
+        if(StringUtils.hasText(name)){
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getUserName, name);
+            return getOne(wrapper);
+        }
+        return null;
     }
 
     private boolean userNameExist(String userName) {

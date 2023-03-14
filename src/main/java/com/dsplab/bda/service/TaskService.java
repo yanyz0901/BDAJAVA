@@ -2,8 +2,8 @@ package com.dsplab.bda.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.TaskListDto;
 import com.dsplab.bda.domain.entity.Task;
-import com.dsplab.bda.enums.AppHttpCodeEnum;
 
 
 /**
@@ -16,7 +16,7 @@ public interface TaskService extends IService<Task> {
 
     ResponseResult getTaskInfoById(Long id);
 
-    ResponseResult taskList(Integer pageNum, Integer pageSize);
+    ResponseResult taskList(Integer pageNum, Integer pageSize, TaskListDto taskListDto);
 
     ResponseResult addTask(Task task);
 
@@ -27,4 +27,6 @@ public interface TaskService extends IService<Task> {
     ResponseResult deleteTask(Long id);
 
     ResponseResult startTask(Integer id) ;
+
+    ResponseResult getTaskResult(Integer id);
 }

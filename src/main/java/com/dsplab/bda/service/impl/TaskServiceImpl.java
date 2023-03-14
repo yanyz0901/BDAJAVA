@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
+import com.dsplab.bda.domain.dto.TaskListDto;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.MailVo;
@@ -24,6 +25,7 @@ import com.dsplab.bda.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -80,7 +82,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     @Override
-    public ResponseResult taskList(Integer pageNum, Integer pageSize) {
+    public ResponseResult taskList(Integer pageNum, Integer pageSize, TaskListDto taskListDto) {
         //参数非空校验
         if (Objects.isNull(pageNum) || Objects.isNull(pageSize)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -91,7 +93,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if(!userService.isAdmin()){
             wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
         }
-
+        //条件查询
+        wrapper.eq(StringUtils.hasText(taskListDto.getStatus()), Task::getStatus, TaskStatusEnum.getByMsg(taskListDto.getStatus()));
+        wrapper.eq(StringUtils.hasText(taskListDto.getTaskType()), Task::getTaskType, taskListDto.getTaskType());
+        wrapper.eq(Objects.nonNull(taskListDto.getTaskId()), Task::getTaskId, taskListDto.getTaskId());
+        if(StringUtils.hasText(taskListDto.getUserName())){
+            User userByName = userService.getUserByName(taskListDto.getUserName());
+            Long userId = (userByName == null? 0L:userByName.getId());
+            wrapper.eq(Task::getUserId, userId);
+        }
         //分页查询
         Page<Task> page = new Page<>(pageNum, pageSize);
         page(page,wrapper);
@@ -265,5 +275,32 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         //如果响应码不为200，则控制台输出
         log.error(result.toJSONString());//返回算法的响应
         return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
+    }
+
+    @Override
+    public ResponseResult getTaskResult(Integer id) {
+        //参数非空校验
+        if (Objects.isNull(id) || id <= 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
+        }
+
+        //根据taskId查询数据库
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, id);
+
+        //查询该用户是否是管理员，若否则加入过滤条件
+        if(!userService.isAdmin()){
+            wrapper.eq(Task::getUserId, SecurityUtils.getUserId());
+        }
+        Task task = getOne(wrapper);
+        if(Objects.isNull(task)){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "用户任务列表里没有该数据！");
+        } else if(!TaskStatusEnum.COMPLETED.getStatusCode().equals(task.getStatus())){
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "任务未执行完成");
+        } else if(StringUtils.hasText(task.getResult())){
+            Object o = JSON.parseObject(task.getResult(), Object.class);
+            return ResponseResult.okResult(o);
+        }
+        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
     }
 }

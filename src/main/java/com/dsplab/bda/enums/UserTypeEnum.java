@@ -2,16 +2,14 @@ package com.dsplab.bda.enums;
 
 import org.springframework.util.StringUtils;
 
-public enum TaskStatusEnum {
-
-    UN_START("0", "未开始"),
-    STARTING("1", "进行中"),
-    COMPLETED("2", "已完成");
+public enum UserTypeEnum {
+    GENERAL_USER("0", "普通用户"),
+    ADMIN("1", "管理员");
 
     String statusCode;
     String msg;
 
-    TaskStatusEnum(String statusCode, String msg) {
+    UserTypeEnum(String statusCode, String msg) {
         this.statusCode = statusCode;
         this.msg = msg;
     }
@@ -28,7 +26,7 @@ public enum TaskStatusEnum {
         if (StringUtils.isEmpty(code)) {
             return null;
         }
-        for (TaskStatusEnum value : values()) {
+        for (UserTypeEnum value : values()) {
             if (value.getStatusCode().equals(code)) {
                 return value.getMsg();
             }
@@ -40,7 +38,7 @@ public enum TaskStatusEnum {
         if (StringUtils.isEmpty(msg)) {
             return null;
         }
-        for (TaskStatusEnum value : values()) {
+        for (UserTypeEnum value : values()) {
             if (value.getMsg().equals(msg)) {
                 return value.getStatusCode();
             }

@@ -27,4 +27,6 @@ public interface TaskService extends IService<Task> {
     ResponseResult deleteTask(Long id);
 
     ResponseResult startTask(Integer id) ;
+
+    ResponseResult getTaskResult(Integer id);
 }

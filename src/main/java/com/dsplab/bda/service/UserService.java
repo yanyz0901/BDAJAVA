@@ -29,4 +29,6 @@ public interface UserService extends IService<User> {
     ResponseResult banUser(User user);
 
     User getUserByName(String name);
+
+    ResponseResult getUserRole();
 }

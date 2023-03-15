@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -45,6 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/userList")
+    @PreAuthorize("@ps.hasPermission('管理员')")
     @SystemLog
     @ApiOperation(value = "获取用户列表", notes = "需要token，需要有管理员权限")
     @ApiImplicitParams({
@@ -56,6 +58,7 @@ public class UserController {
     }
 
     @PostMapping("/adminPermission")
+    @PreAuthorize("@ps.hasPermission('管理员')")
     @SystemLog
     @ApiOperation(value = "修改用户权限", notes = "需要token，需要有管理员权限，0为普通用户，1为管理员")
     public ResponseResult modifyPermission(@RequestBody UserTypeDto userTypeDto){
@@ -64,10 +67,18 @@ public class UserController {
     }
 
     @PostMapping("/banUser")
+    @PreAuthorize("@ps.hasPermission('管理员')")
     @SystemLog
     @ApiOperation(value = "修改用户状态", notes = "需要token，需要有管理员权限，0为正常，1为禁用")
     public ResponseResult banUser(@RequestBody UserStatusDto userStatusDto){
         User user = BeanCopyUtils.copyBean(userStatusDto, User.class);
         return userService.banUser(user);
+    }
+
+    @GetMapping("/getRole")
+    @SystemLog
+    @ApiOperation(value = "获得用户角色信息")
+    public ResponseResult getRole(){
+        return userService.getUserRole();
     }
 }

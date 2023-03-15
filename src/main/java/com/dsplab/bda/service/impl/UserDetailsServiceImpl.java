@@ -1,8 +1,10 @@
 package com.dsplab.bda.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.entity.LoginUser;
 import com.dsplab.bda.domain.entity.User;
+import com.dsplab.bda.enums.UserTypeEnum;
 import com.dsplab.bda.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -29,7 +33,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new RuntimeException("用户不存在");
         }
         //返回用户信息
-        // TODO 查询权限信息封装
-        return new LoginUser(user);
+        //查询权限信息封装
+        List<String> list = new ArrayList<>();
+        list.add(UserTypeEnum.getByCode(user.getType()));
+        return new LoginUser(user, list);
     }
 }

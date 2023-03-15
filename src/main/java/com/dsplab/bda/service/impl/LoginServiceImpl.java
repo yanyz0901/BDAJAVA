@@ -5,6 +5,8 @@ import com.dsplab.bda.domain.entity.LoginUser;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.UserLoginVo;
 import com.dsplab.bda.domain.vo.UserVo;
+import com.dsplab.bda.enums.AppHttpCodeEnum;
+import com.dsplab.bda.enums.UserStatusEnum;
 import com.dsplab.bda.service.LoginService;
 import com.dsplab.bda.utils.BeanCopyUtils;
 import com.dsplab.bda.utils.JwtUtil;
@@ -34,10 +36,15 @@ public class LoginServiceImpl implements LoginService {
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         //判断是否认证通过
         if(Objects.isNull(authenticate)){
-            throw new RuntimeException("用户名或密码错误");
+            throw new RuntimeException(AppHttpCodeEnum.LOGIN_ERROR.getMsg());
         }
-        //获取userid 生成token
+
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        //查询用户状态是否正常
+        if(UserStatusEnum.DISABLED.getStatusCode().equals(loginUser.getUser().getStatus())){
+            throw new RuntimeException(AppHttpCodeEnum.USER_STATUS_BANNED.getMsg());
+        }
+        //获取userId 生成token
         String userId = loginUser.getUser().getId().toString();
         String jwt = JwtUtil.createJWT(userId);
         //把用户信息存入redis
@@ -51,10 +58,10 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseResult logout() {
-        //获取token 解析获取userid
+        //获取token 解析获取userId
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        //获取userid
+        //获取userId
         Long userId = loginUser.getUser().getId();
         //删除redis中的用户信息
         redisCache.deleteObject("login:"+userId);

@@ -7,6 +7,7 @@ import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.dto.UserListDto;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.PageVo;
+import com.dsplab.bda.domain.vo.RoleVo;
 import com.dsplab.bda.domain.vo.UserVo;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
 import com.dsplab.bda.enums.UserStatusEnum;
@@ -15,6 +16,8 @@ import com.dsplab.bda.exception.SystemException;
 import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.UserService;
 import com.dsplab.bda.utils.BeanCopyUtils;
+import com.dsplab.bda.utils.RedisCache;
+import com.dsplab.bda.utils.RegularCheckUtils;
 import com.dsplab.bda.utils.SecurityUtils;
 import io.jsonwebtoken.lang.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +34,14 @@ import java.util.Objects;
  * @author makejava
  * @since 2023-01-06 11:29:30
  */
-@Service("userService")
+@Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RedisCache redisCache;
 
     @Override
     public ResponseResult register(User user) {
@@ -51,6 +57,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if(!StringUtils.hasText(user.getPhone())){
             throw new SystemException(AppHttpCodeEnum.PHONE_NOT_NULL);
+        }
+        //对手机号邮箱进行格式校验
+        if(!RegularCheckUtils.checkPhone(user.getPhone())){
+            throw new SystemException(AppHttpCodeEnum.PHONE_FORMAT_WRONG);
+        }
+        if(!RegularCheckUtils.checkEmail(user.getEmail())){
+            throw new SystemException(AppHttpCodeEnum.EMAIL_FORMAT_WRONG);
         }
         //对数据进行是否存在的判断
         if(userNameExist(user.getUserName())){
@@ -100,11 +113,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if(phoneExist(user.getPhone())){
                 throw new SystemException(AppHttpCodeEnum.PHONE_NUMBER_EXIST);
             }
+            if(!RegularCheckUtils.checkPhone(user.getPhone())){
+                throw new SystemException(AppHttpCodeEnum.PHONE_FORMAT_WRONG);
+            }
         }
         //更新邮箱 检查是否重复
         if(Strings.hasText(user.getEmail())){
             if(emailExist(user.getEmail())){
                 throw new SystemException(AppHttpCodeEnum.EMAIL_EXIST);
+            }
+            if(!RegularCheckUtils.checkEmail(user.getEmail())){
+                throw new SystemException(AppHttpCodeEnum.EMAIL_FORMAT_WRONG);
             }
         }
         //更新密码 密码加密
@@ -127,9 +146,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult userList(Integer pageNum, Integer pageSize, UserListDto userListDto) {
         //判断用户是否为管理员
-        if(!isAdmin()){
-            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
-        }
+//        if(!isAdmin()){
+//            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+//        }
         //参数非空校验
         if (Objects.isNull(pageNum) || Objects.isNull(pageSize)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -153,9 +172,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult modifyPermission(User user) {
         //判断用户是否为管理员
-        if(!isAdmin()){
-            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
-        }
+//        if(!isAdmin()){
+//            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+//        }
         //输入参数校验
         if(Objects.isNull(user.getId()) || Objects.isNull(user.getType())){
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -173,9 +192,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult banUser(User user) {
         //判断用户是否为管理员
-        if(!isAdmin()){
-            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
-        }
+//        if(!isAdmin()){
+//            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+//        }
         //输入参数校验
         if(Objects.isNull(user.getId()) || Objects.isNull(user.getStatus())){
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
@@ -183,10 +202,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         User u = getById(user.getId());
         if(Objects.isNull(u)){
-            return ResponseResult.errorResult(AppHttpCodeEnum.SUCCESS.getCode(), "用户不存在！");
+            return ResponseResult.errorResult(AppHttpCodeEnum.USER_NOT_EXIST);
         }
         //更新数据库
         updateById(user);
+        //如果为禁用且用户已登录，删除用户登录状态
+        if(UserStatusEnum.DISABLED.getStatusCode().equals(user.getStatus())&&Objects.nonNull(redisCache.getCacheObject("login:" + user.getId()))){
+            //删除redis中的用户信息
+            redisCache.deleteObject("login:"+user.getId());
+        }
         return ResponseResult.okResult();
     }
 
@@ -198,6 +222,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return getOne(wrapper);
         }
         return null;
+    }
+
+    @Override
+    public ResponseResult getUserRole() {
+        RoleVo roleVo = new RoleVo();
+        roleVo.setId(SecurityUtils.getUserId());
+        roleVo.setUserName(SecurityUtils.getLoginUser().getUsername());
+        roleVo.setType(SecurityUtils.getLoginUser().getUser().getType());
+        if(isAdmin()){
+            roleVo.setIsAdmin(true);
+        }else roleVo.setIsAdmin(false);
+        return ResponseResult.okResult(roleVo);
     }
 
     private boolean userNameExist(String userName) {

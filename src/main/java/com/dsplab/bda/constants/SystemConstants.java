@@ -6,4 +6,8 @@ public class SystemConstants {
 
     public static final String EMAIL_NAME = "BDA任务执行完成通知";
 
+    public static final String ADMIN = "1";
+
+    public static final String NORMAL_USER = "0";
+
 }

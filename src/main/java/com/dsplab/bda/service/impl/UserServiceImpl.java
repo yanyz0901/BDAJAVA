@@ -155,7 +155,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         //条件查询
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StringUtils.hasText(userListDto.getUserName()), User::getUserName, userListDto.getUserName());
+        wrapper.like(StringUtils.hasText(userListDto.getUserName()), User::getUserName, userListDto.getUserName());
         wrapper.eq(StringUtils.hasText(userListDto.getStatus()), User::getStatus, UserStatusEnum.getByMsg(userListDto.getStatus()));
         wrapper.eq(StringUtils.hasText(userListDto.getType()), User::getType, UserTypeEnum.getByMsg(userListDto.getType()));
         wrapper.eq(Objects.nonNull(userListDto.getId()), User::getId, userListDto.getId());

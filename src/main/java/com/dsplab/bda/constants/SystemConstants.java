@@ -10,4 +10,10 @@ public class SystemConstants {
 
     public static final String NORMAL_USER = "0";
 
+    public static final String MOO_SEEKER = "mooseeker";
+
+    public static final String YIELDS_CALCULATER = "yieldsCalculater";
+
+    public static final String TOXICITY_PREDICTOR = "toxicityPredictor";
+
 }

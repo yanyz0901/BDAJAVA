@@ -2,6 +2,8 @@ server:
   port: 8888
 
 spring:
+  application:
+    name: BDA-Java
   mail:
     default-encoding: UTF-8
     host: smtp.163.com #SMTP服务器地址
@@ -20,6 +22,21 @@ spring:
       max-file-size: 2MB
       max-request-size: 5MB
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    # 消费者配置手动确认消息
+    listener:
+      simple:
+        acknowledge-mode: manual
+    # 确认消息发送到交换机上
+    publisher-confirms: true
+    # 确认消息已发送到队列
+    publisher-returns: true
+
 mybatis-plus:
   configuration:
     # 日志
@@ -33,5 +50,5 @@ mybatis-plus:
 
 restTemplate:
   parameter:
-    connectTimeout: 6000
-    readTimeout: 6000
+    connect-timeout: 6000
+    read-timeout: 6000

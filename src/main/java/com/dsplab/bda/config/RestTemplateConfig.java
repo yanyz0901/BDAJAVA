@@ -10,11 +10,11 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestTemplateConfig {
     //连接超时时间
-    @Value("${restTemplate.parameter.connectTimeout}")
+    @Value("${restTemplate.parameter.connect-timeout}")
     private Integer connectTimeout;
 
     //读取超时时间
-    @Value("${restTemplate.parameter.readTimeout}")
+    @Value("${restTemplate.parameter.read-timeout}")
     private Integer readTimeout;
 
     @Bean

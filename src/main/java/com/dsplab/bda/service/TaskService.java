@@ -29,4 +29,6 @@ public interface TaskService extends IService<Task> {
     ResponseResult startTask(Integer id) ;
 
     ResponseResult getTaskResult(Integer id);
+
+    ResponseResult startTaskByMq(Integer id);
 }

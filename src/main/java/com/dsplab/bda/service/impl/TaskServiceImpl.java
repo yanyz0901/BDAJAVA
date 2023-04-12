@@ -6,15 +6,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.dsplab.bda.config.RabbitmqConfig;
 import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.dto.TaskListDto;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
-import com.dsplab.bda.domain.vo.MailVo;
-import com.dsplab.bda.domain.vo.PageVo;
-import com.dsplab.bda.domain.vo.StartTaskVo;
-import com.dsplab.bda.domain.vo.TaskVo;
+import com.dsplab.bda.domain.vo.*;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
 import com.dsplab.bda.enums.TaskStatusEnum;
 import com.dsplab.bda.mapper.TaskMapper;
@@ -23,6 +21,7 @@ import com.dsplab.bda.service.TaskService;
 import com.dsplab.bda.service.UserService;
 import com.dsplab.bda.utils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -52,6 +51,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private RestTemplateUtils restTemplateUtils;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult getTaskInfoById(Long id) {
@@ -236,6 +238,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     }
 
     //开始任务api
+    @Override
     public ResponseResult startTask(Integer id) {
         //参数非空校验
         if(Objects.isNull(id) || id <= 0){
@@ -251,16 +254,16 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前任务不存在");
         }
         //判断的任务中user_id，与当前的用户的id是否一致，不一致则报错
-        if(!task.getUserId().equals(SecurityUtils.getUserId())){
+        if(!userService.isAdmin()&&!task.getUserId().equals(SecurityUtils.getUserId())){
             log.info("the user_id in the task are not match the now user");
             return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前用户id与该任务中的用户id不符");
         }
         //根据id从数据库中获取任务信息
         String TaskInfo = task.getConfigInfo();
-        //将任务信息从json转为StartTaskVo格式，然后在里面加入task_id，再重新转为json格式
-        StartTaskVo taskVo = JSON.parseObject(TaskInfo,StartTaskVo.class);
-        taskVo.setTaskId(id.toString());
-        String json = JSON.toJSONString(taskVo);
+        //增加json中字段
+        JSONObject taskVo = JSON.parseObject(TaskInfo, JSONObject.class);
+        taskVo.put("task_id", id.toString());
+        String json = taskVo.toJSONString();
         //发送给算法api
         JSONObject result= restTemplateUtils.doPostForObject(SystemConstants.MOOSEEKER_TASK_URL,json);
         log.info(result.toJSONString());
@@ -274,8 +277,54 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }
         //如果响应码不为200，则控制台输出
         log.error(result.toJSONString());//返回算法的响应
-        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"算法启动失败");
+        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(),"算法启动失败");
     }
+
+    @Override
+    public ResponseResult startTaskByMq(Integer id) {
+        //参数非空校验
+        if(Objects.isNull(id) || id <= 0){
+            return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
+        }
+        //根据输入的任务id找到对应任务
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getTaskId, id);
+        Task task = getOne(wrapper);
+        // 判断task是否存在
+        if(Objects.isNull(task)){
+            log.info("do not has the task");
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前任务不存在");
+        }
+        //判断的任务中user_id，与当前的用户的id是否一致，不一致则报错
+        if(!userService.isAdmin()&&!task.getUserId().equals(SecurityUtils.getUserId())){
+            log.info("the user_id in the task are not match the now user");
+            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR,"当前用户id与该任务中的用户id不符");
+        }
+        //根据id从数据库中获取任务信息
+        String TaskInfo = task.getConfigInfo();
+        JSONObject taskVo = JSON.parseObject(TaskInfo, JSONObject.class);
+        taskVo.put("task_id", id.toString());
+        log.info("配置信息为：", taskVo);
+        switch (task.getTaskType()){
+            case SystemConstants.MOO_SEEKER:
+                rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_MOO_SEEKER, taskVo.toJSONString());
+                break;
+            case SystemConstants.TOXICITY_PREDICTOR:
+                rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_TOXICITY_PREDICTOR, taskVo.toJSONString());
+                break;
+            case SystemConstants.YIELDS_CALCULATER:
+                rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_YIELDS_CALCULATER, taskVo.toJSONString());
+                break;
+            default:
+                return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "任务类型错误");
+        }
+        // 更新任务开始时间
+        task.setStartTime(new Date());
+        task.setStatus(TaskStatusEnum.STARTING.getStatusCode());
+        update(task, wrapper);
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
 
     @Override
     public ResponseResult getTaskResult(Integer id) {

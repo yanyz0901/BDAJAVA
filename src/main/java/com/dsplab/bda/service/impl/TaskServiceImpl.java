@@ -99,6 +99,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         wrapper.eq(StringUtils.hasText(taskListDto.getStatus()), Task::getStatus, TaskStatusEnum.getByMsg(taskListDto.getStatus()));
         wrapper.eq(StringUtils.hasText(taskListDto.getTaskType()), Task::getTaskType, taskListDto.getTaskType());
         wrapper.eq(Objects.nonNull(taskListDto.getTaskId()), Task::getTaskId, taskListDto.getTaskId());
+        wrapper.orderByDesc(Task::getCreateTime);
         if(StringUtils.hasText(taskListDto.getUserName())){
             User userByName = userService.getUserByName(taskListDto.getUserName());
             Long userId = (userByName == null? 0L:userByName.getId());

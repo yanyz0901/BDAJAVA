@@ -20,7 +20,9 @@ public class RestTemplateConfig {
     @Bean
     //@LoadBalanced //客户端对服务器的负载均衡
     public RestTemplate restTemplate(ClientHttpRequestFactory factory) {
-        return new RestTemplate(factory);
+        RestTemplate restTemplate = new RestTemplate(factory);
+        restTemplate.getMessageConverters().add(new WxMappingJackson2HttpMessageConverter());
+        return restTemplate;
     }
 
     @Bean

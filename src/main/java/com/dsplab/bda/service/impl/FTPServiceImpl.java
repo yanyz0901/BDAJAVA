@@ -44,8 +44,8 @@ public class FTPServiceImpl implements FTPService {
 
     @Override
     public ResponseResult deleteFile(FTPVO ftpvo) {
-        if(ftpvo.getFtpPath()==null||ftpvo.getFileName()==null){
-            log.error("下载文件时文件路径和文件名均不能为空！");
+        if(ftpvo.getFtpPath()==null){
+            log.error("下载文件时文件路径不能为空！");
             return ResponseResult.errorResult(AppHttpCodeEnum.INPUT_NOT_NULL);
         }
         String fileName = StringUtils.hasText(ftpvo.getFileName())?ftpvo.getFileName():null;

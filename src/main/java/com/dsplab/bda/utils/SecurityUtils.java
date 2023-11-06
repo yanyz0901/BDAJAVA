@@ -1,10 +1,6 @@
 package com.dsplab.bda.utils;
 
 import com.dsplab.bda.domain.entity.LoginUser;
-import com.dsplab.bda.domain.entity.User;
-import com.dsplab.bda.mapper.UserMapper;
-import com.dsplab.bda.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

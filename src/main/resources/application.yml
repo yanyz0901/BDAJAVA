@@ -52,3 +52,9 @@ restTemplate:
   parameter:
     connect-timeout: 6000
     read-timeout: 6000
+
+ftp:
+  ip: 192.168.18.2
+  port: 21
+  userName: bdauser
+  passWord: bdauser

@@ -316,6 +316,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             case SystemConstants.YIELDS_CALCULATER:
                 rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_YIELDS_CALCULATER, taskVo.toJSONString());
                 break;
+            case SystemConstants.HOST_CELL:
+                rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_HOST_CELL, taskVo.toJSONString());
+                break;
             default:
                 return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR.getCode(), "任务类型错误");
         }

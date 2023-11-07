@@ -16,6 +16,8 @@ public class SystemConstants {
 
     public static final String TOXICITY_PREDICTOR = "toxicityPredictor";
 
+    public static final String HOST_CELL = "hostcell";
+
     public static final String KEGG_LIST_URL = "https://rest.kegg.jp/list/reaction";
 
     public static final String KEGG_INFO_URL = "https://rest.kegg.jp/get/";

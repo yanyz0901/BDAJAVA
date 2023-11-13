@@ -13,9 +13,9 @@ spring:
       from: BDA_DSP@163.com
 
   datasource:
-    url: jdbc:mysql://localhost:3306/bda?characterEncoding=utf-8&serverTimezone=UTC&useSSL=true
+    url: jdbc:mysql://bj-cdb-7ipkvc5q.sql.tencentcdb.com:63670/bda?characterEncoding=utf-8&serverTimezone=UTC&useSSL=true
     username: root
-    password: root
+    password: Dsp750403
     driver-class-name: com.mysql.jdbc.Driver
   servlet:
     multipart:
@@ -23,10 +23,10 @@ spring:
       max-request-size: 5MB
 
   rabbitmq:
-    host: localhost
+    host: 43.138.50.35
     port: 5672
-    username: guest
-    password: guest
+    username: bda
+    password: dsp750403
     virtual-host: /
     # 消费者配置手动确认消息
     listener:
@@ -36,6 +36,11 @@ spring:
     publisher-confirms: true
     # 确认消息已发送到队列
     publisher-returns: true
+
+  redis:
+    host: bj-crs-j4wwda9g.sql.tencentcdb.com
+    port: 21722
+    password: Dsp750403
 
 mybatis-plus:
   configuration:
@@ -54,7 +59,7 @@ restTemplate:
     read-timeout: 6000
 
 ftp:
-  ip: 192.168.18.2
+  ip: 43.138.50.35
   port: 21
-  userName: bdauser
-  passWord: bdauser
+  userName: bdauser1
+  passWord: dsp750403

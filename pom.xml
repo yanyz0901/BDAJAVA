@@ -10,6 +10,7 @@
     </parent>
     <groupId>com.dsplab</groupId>
     <artifactId>bda</artifactId>
+    <version>1.0.0.RELEASE</version>
     <name>bda</name>
     <!--打war包-->
     <packaging>war</packaging>
@@ -143,6 +144,8 @@
     </dependencies>
 
     <build>
+        <!--打包名-->
+        <finalName>bda</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

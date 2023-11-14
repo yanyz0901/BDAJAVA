@@ -10,8 +10,9 @@
     </parent>
     <groupId>com.dsplab</groupId>
     <artifactId>bda</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>bda</name>
+    <!--打war包-->
+    <packaging>war</packaging>
     <description>java code for bda</description>
 
     <properties>
@@ -24,6 +25,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- 打包时排除内嵌tomcat-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

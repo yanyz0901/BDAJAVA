@@ -204,9 +204,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         if(t.getTaskType().equals(SystemConstants.HOST_CELL)){
             JSONObject jsonObject = JSON.parseObject(task.getResult());
             Hostcell hostcell = new Hostcell();
-            hostcell.setFileName(jsonObject.getString("file_name"));
-            hostcell.setFtpPath(jsonObject.getString("ftp_path"));
-            hostcell.setHostcellName(jsonObject.getString("hostcell_name"));
+            hostcell.setFileName(StringUtils.hasText(jsonObject.getString("file_name"))?jsonObject.getString("file_name"):"");
+            hostcell.setFtpPath(StringUtils.hasText(jsonObject.getString("ftp_path"))?jsonObject.getString("ftp_path"):"");
+            hostcell.setHostcellName(StringUtils.hasText(jsonObject.getString("hostcell_name"))?jsonObject.getString("hostcell_name"):"");
             hostcell.setTaskId(t.getTaskId());
             hostcell.setUserId(t.getUserId());
             hostcellMapper.insert(hostcell);

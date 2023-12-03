@@ -10,11 +10,13 @@ import com.dsplab.bda.config.RabbitmqConfig;
 import com.dsplab.bda.constants.SystemConstants;
 import com.dsplab.bda.domain.ResponseResult;
 import com.dsplab.bda.domain.dto.TaskListDto;
+import com.dsplab.bda.domain.entity.Hostcell;
 import com.dsplab.bda.domain.entity.Task;
 import com.dsplab.bda.domain.entity.User;
 import com.dsplab.bda.domain.vo.*;
 import com.dsplab.bda.enums.AppHttpCodeEnum;
 import com.dsplab.bda.enums.TaskStatusEnum;
+import com.dsplab.bda.mapper.HostcellMapper;
 import com.dsplab.bda.mapper.TaskMapper;
 import com.dsplab.bda.mapper.UserMapper;
 import com.dsplab.bda.service.TaskService;
@@ -54,6 +56,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private HostcellMapper hostcellMapper;
 
     @Override
     public ResponseResult getTaskInfoById(Long id) {
@@ -195,6 +200,17 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }
         task.setCompleteTime(new Date());
         task.setStatus(TaskStatusEnum.COMPLETED.getStatusCode());
+        // 将宿主细胞制作的结果存入数据库
+        if(t.getTaskType().equals(SystemConstants.HOST_CELL)){
+            JSONObject jsonObject = JSON.parseObject(task.getResult());
+            Hostcell hostcell = new Hostcell();
+            hostcell.setFileName(jsonObject.getString("file_name"));
+            hostcell.setFtpPath(jsonObject.getString("ftp_path"));
+            hostcell.setHostcellName(jsonObject.getString("hostcell_name"));
+            hostcell.setTaskId(t.getTaskId());
+            hostcell.setUserId(t.getUserId());
+            hostcellMapper.insert(hostcell);
+        }
         //算法端直接调用不需要登录检查
         if (update(task, wrapper)) {
             log.info("update database success!");

@@ -52,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter  {
             .antMatchers("/logout").authenticated()
             .antMatchers("/task/*").authenticated()
             .antMatchers("/user/*").authenticated()
+                .antMatchers("/hostcell/*").authenticated()
                 .antMatchers("/ftp/*").authenticated()
             // 除上面外的所有请求全部不需要认证即可访问
             .anyRequest().permitAll();

@@ -13,5 +13,7 @@ import com.dsplab.bda.domain.entity.Hostcell;
 public interface HostcellService extends IService<Hostcell> {
 
     ResponseResult hostcellList();
+    ResponseResult deleteHostcell(Long id);
+
 
 }

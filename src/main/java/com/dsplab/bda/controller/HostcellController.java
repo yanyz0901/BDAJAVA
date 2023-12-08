@@ -23,7 +23,7 @@ public class HostcellController {
     private HostcellService hostcellService;
 
     @GetMapping("/getList")
-    @SystemLog
+//    @SystemLog
     public ResponseResult getHostcellList(){
         return hostcellService.hostcellList();
     }

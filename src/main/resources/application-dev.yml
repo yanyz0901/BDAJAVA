@@ -4,6 +4,16 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver
+#  datasource:
+#    url: jdbc:mysql://bj-cdb-7ipkvc5q.sql.tencentcdb.com:63670/bda?characterEncoding=utf-8&serverTimezone=UTC&useSSL=true
+#    username: root
+#    password: Dsp750403
+#    driver-class-name: com.mysql.jdbc.Driver
+#
+#  redis:
+#    host: bj-crs-j4wwda9g.sql.tencentcdb.com
+#    port: 21722
+#    password: Dsp750403
 
   rabbitmq:
     host: localhost

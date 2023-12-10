@@ -54,6 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter  {
             .antMatchers("/user/*").authenticated()
                 .antMatchers("/hostcell/*").authenticated()
                 .antMatchers("/ftp/*").authenticated()
+                .antMatchers("/compound/*").authenticated()
+                .antMatchers("/enzyme/*").authenticated()
+                .antMatchers("/reaction/*").authenticated()
             // 除上面外的所有请求全部不需要认证即可访问
             .anyRequest().permitAll();
 

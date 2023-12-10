@@ -14,4 +14,7 @@ public interface HostcellService extends IService<Hostcell> {
 
     ResponseResult hostcellList();
 
+    ResponseResult deleteHostcell(Long id);
+
+
 }

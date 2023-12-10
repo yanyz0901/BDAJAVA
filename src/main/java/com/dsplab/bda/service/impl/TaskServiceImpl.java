@@ -19,6 +19,7 @@ import com.dsplab.bda.enums.TaskStatusEnum;
 import com.dsplab.bda.mapper.HostcellMapper;
 import com.dsplab.bda.mapper.TaskMapper;
 import com.dsplab.bda.mapper.UserMapper;
+import com.dsplab.bda.service.HostcellService;
 import com.dsplab.bda.service.TaskService;
 import com.dsplab.bda.service.UserService;
 import com.dsplab.bda.utils.*;
@@ -47,6 +48,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
 
     @Autowired
     private MailServiceImpl mailService;
+
+    @Autowired
+    private HostcellService hostcellService;
 
     @Autowired
     private UserMapper userMapper;
@@ -245,7 +249,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }
 
         //逻辑删除
-        if (SqlHelper.retBool(getBaseMapper().delete(wrapper))) {
+        if (SqlHelper.retBool(getBaseMapper().delete(wrapper)) && hostcellService.deleteHostcell(id).getCode()==200) {
             log.info("delete database success!");
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         } else {

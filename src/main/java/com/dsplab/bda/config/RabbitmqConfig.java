@@ -13,13 +13,13 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitmqConfig {
 
     public static final String QUEUE_TASK_MOO_SEEKER = "queue_task_moo_seeker";
-    public static final String QUEUE_TASK_YIELDS_CALCULATER = "queue_task_yields_calculater";
+    public static final String QUEUE_TASK_YIELDS_CALCULATER = "queue_task_yields_calculater_2";
     public static final String QUEUE_TASK_TOXICITY_PREDICTOR = "queue_task_toxicity_predictor";
     public static final String QUEUE_TASK_HOST_CELL = "queue_task_host_cell";
 
     public static final String EXCHANGE_TASK = "exchange_task";
     public static final String ROUTING_KEY_MOO_SEEKER = "routing_key_moo_seeker";
-    public static final String ROUTING_KEY_YIELDS_CALCULATER = "routing_key_yields_calculater";
+    public static final String ROUTING_KEY_YIELDS_CALCULATER = "routing_key_yields_calculater_2";
     public static final String ROUTING_KEY_TOXICITY_PREDICTOR = "routing_key_toxicity_predictor";
     public static final String ROUTING_KEY_HOST_CELL = "routing_key_host_cell";
 
@@ -44,7 +44,7 @@ public class RabbitmqConfig {
     }
 
     @Bean(QUEUE_TASK_HOST_CELL)
-    public Queue QUEUE_TASK_HOST_CELL() { return new Queue(QUEUE_TASK_HOST_CELL,false); }
+    public Queue QUEUE_TASK_HOST_CELL() { return new Queue(QUEUE_TASK_HOST_CELL,true); }
 
     @Bean
     public Binding BINDING_EXCHANGE_TASK_QUEUE_MOO_SEEKER(@Qualifier(QUEUE_TASK_MOO_SEEKER) Queue queue,

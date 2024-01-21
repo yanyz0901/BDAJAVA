@@ -16,12 +16,14 @@ public class RabbitmqConfig {
     public static final String QUEUE_TASK_YIELDS_CALCULATER = "queue_task_yields_calculater_2";
     public static final String QUEUE_TASK_TOXICITY_PREDICTOR = "queue_task_toxicity_predictor";
     public static final String QUEUE_TASK_HOST_CELL = "queue_task_host_cell";
+    public static final String QUEUE_TASK_HIRXN_CELL = "queue_task_hirxn";
 
     public static final String EXCHANGE_TASK = "exchange_task";
     public static final String ROUTING_KEY_MOO_SEEKER = "routing_key_moo_seeker";
     public static final String ROUTING_KEY_YIELDS_CALCULATER = "routing_key_yields_calculater_2";
     public static final String ROUTING_KEY_TOXICITY_PREDICTOR = "routing_key_toxicity_predictor";
     public static final String ROUTING_KEY_HOST_CELL = "routing_key_host_cell";
+    public static final String ROUTING_KEY_HIRXN = "routing_key_hirxn";
 
     @Bean(EXCHANGE_TASK)
     public Exchange EXCHANGE_TASK(){
@@ -46,6 +48,9 @@ public class RabbitmqConfig {
     @Bean(QUEUE_TASK_HOST_CELL)
     public Queue QUEUE_TASK_HOST_CELL() { return new Queue(QUEUE_TASK_HOST_CELL,true); }
 
+    @Bean(QUEUE_TASK_HIRXN_CELL)
+    public Queue QUEUE_TASK_HIRXN_CELL() { return new Queue(QUEUE_TASK_HIRXN_CELL,true); }
+
     @Bean
     public Binding BINDING_EXCHANGE_TASK_QUEUE_MOO_SEEKER(@Qualifier(QUEUE_TASK_MOO_SEEKER) Queue queue,
                                                           @Qualifier(EXCHANGE_TASK) Exchange exchange){
@@ -68,6 +73,12 @@ public class RabbitmqConfig {
     public Binding BINDING_EXCHANGE_TASK_QUEUE_HOST_CELL(@Qualifier(QUEUE_TASK_HOST_CELL) Queue queue,
                                                           @Qualifier(EXCHANGE_TASK) Exchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_HOST_CELL).noargs();
+    }
+
+    @Bean
+    public Binding BINDING_EXCHANGE_TASK_QUEUE_HIRXN(@Qualifier(QUEUE_TASK_HIRXN_CELL) Queue queue,
+                                                         @Qualifier(EXCHANGE_TASK) Exchange exchange){
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_HIRXN).noargs();
     }
 
     /**

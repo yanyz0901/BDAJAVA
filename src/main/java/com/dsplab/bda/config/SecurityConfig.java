@@ -47,6 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter  {
             .antMatchers("/login").anonymous()
             .antMatchers("/user/register").permitAll()
             .antMatchers("/task/result").permitAll()
+                .antMatchers("/hirxn/*").permitAll()
                 .antMatchers("/database").permitAll()
             //需要认证才能访问
             .antMatchers("/logout").authenticated()

@@ -43,16 +43,20 @@ public class HirxnServiceImpl extends ServiceImpl<HirxnTaskMapper, HirxnTask> im
         hirxnTask.setStatus("0");
         SerializeConfig serializeConfig = new SerializeConfig();
         serializeConfig.propertyNamingStrategy = PropertyNamingStrategy.SnakeCase;
-        if (save(hirxnTask)) {
-            log.info("write database success!");
-            //将任务投放至消息队列
-            rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_HIRXN, JSON.toJSONString(addHirxnTaskDto, serializeConfig));
-            //返回任务id
-            return ResponseResult.okResult(taskId);
-        } else {
-            log.error("write database failed!");
-            return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
+        try{
+            if (save(hirxnTask)) {
+                log.info("write database success!");
+                //将任务投放至消息队列
+                rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_HIRXN, JSON.toJSONString(addHirxnTaskDto, serializeConfig));
+                //返回任务id
+                return ResponseResult.okResult(taskId);
+            } else {
+                log.error("write database failed!");
+            }
+        }catch (Exception e){
+            log.error("write database failed!", e);
         }
+        return ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR);
     }
 
     @Override
@@ -108,6 +112,18 @@ public class HirxnServiceImpl extends ServiceImpl<HirxnTaskMapper, HirxnTask> im
      */
     private boolean verifyInput(AddHirxnTaskDto addHirxnTaskDto) {
 
+        if(!"0".equals(addHirxnTaskDto.getRadius()) && !"1".equals(addHirxnTaskDto.getRadius()) && !"2".equals(addHirxnTaskDto.getRadius())){
+            return false;
+        }
+        if(!"classification".equals(addHirxnTaskDto.getTaskType()) && !"regression".equals(addHirxnTaskDto.getTaskType())){
+            return false;
+        }
+        if(StringUtils.isEmpty(addHirxnTaskDto.getRxnSmiles()) || addHirxnTaskDto.getRxnSmiles().length() > 5000){
+            return false;
+        }
+        if(!addHirxnTaskDto.getRxnSmiles().contains(">>")){
+            return false;
+        }
         return true;
     }
 }

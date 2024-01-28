@@ -37,7 +37,6 @@ public class HirxnController {
     @SystemLog
     @ApiOperation(value = "保存任务结果", notes = "不需要携带token")
     public ResponseResult addResult(@RequestBody HirxnTaskVo hirxnTaskVo){
-        System.out.println(hirxnTaskVo);
         return hirxnService.updateResult(hirxnTaskVo);
     }
 }

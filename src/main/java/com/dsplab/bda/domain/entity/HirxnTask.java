@@ -13,7 +13,7 @@ import java.util.List;
 @TableName("hirxn_task")
 public class HirxnTask {
     //任务id
-    @TableId
+    @TableId(type = IdType.INPUT)
     private String taskId;
     //反应表达式
     private String rxnSmiles;

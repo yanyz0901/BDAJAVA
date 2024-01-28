@@ -1,6 +1,8 @@
 package com.dsplab.bda.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.PropertyNamingStrategy;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dsplab.bda.config.RabbitmqConfig;
@@ -39,10 +41,12 @@ public class HirxnServiceImpl extends ServiceImpl<HirxnTaskMapper, HirxnTask> im
         addHirxnTaskDto.setTaskId(taskId);
         HirxnTask hirxnTask = BeanCopyUtils.copyBean(addHirxnTaskDto, HirxnTask.class);
         hirxnTask.setStatus("0");
+        SerializeConfig serializeConfig = new SerializeConfig();
+        serializeConfig.propertyNamingStrategy = PropertyNamingStrategy.SnakeCase;
         if (save(hirxnTask)) {
             log.info("write database success!");
             //将任务投放至消息队列
-            rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_HIRXN, JSON.toJSONString(addHirxnTaskDto));
+            rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE_TASK, RabbitmqConfig.ROUTING_KEY_HIRXN, JSON.toJSONString(addHirxnTaskDto, serializeConfig));
             //返回任务id
             return ResponseResult.okResult(taskId);
         } else {
